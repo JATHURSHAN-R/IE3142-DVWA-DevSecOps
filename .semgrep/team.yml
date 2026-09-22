@@ -1,0 +1,43 @@
+rules:
+  - id: team-sqli-direct-query
+    languages: [php]
+    severity: ERROR
+    message: Review direct SQL execution in the selected SQL injection module.
+    paths:
+      include:
+        - vulnerabilities/sqli/source/low.php
+    pattern: mysqli_query(...)
+
+  - id: team-command-shell
+    languages: [php]
+    severity: ERROR
+    message: Review shell execution in the selected command handler.
+    paths:
+      include:
+        - vulnerabilities/exec/source/low.php
+    pattern: shell_exec(...)
+
+  - id: team-guestbook-output
+    languages: [php]
+    severity: ERROR
+    message: Review raw guestbook values before HTML rendering.
+    paths:
+      include:
+        - dvwa/includes/dvwaPage.inc.php
+    patterns:
+      - pattern-inside: |
+          function dvwaGuestbook() {
+            ...
+          }
+      - pattern-either:
+          - pattern: '$NAME = $ROW[0];'
+          - pattern: '$COMMENT = $ROW[1];'
+
+  - id: team-upload-direct-save
+    languages: [php]
+    severity: ERROR
+    message: Review direct upload storage and content validation.
+    paths:
+      include:
+        - vulnerabilities/upload/source/low.php
+    pattern: move_uploaded_file(...)
