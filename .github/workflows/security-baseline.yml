@@ -1,0 +1,74 @@
+name: Day 1 Security Baseline
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sast:
+    name: Focused PHP security scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out this commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Scan the four team modules
+        run: |
+          mkdir -p reports
+          docker run --rm \
+            -v "$PWD:/src" -w /src \
+            semgrep/semgrep:1.90.0 \
+            semgrep scan --config .semgrep/team.yml \
+              --metrics off --disable-version-check \
+              --json --output reports/semgrep.json .
+
+      - name: Summarize the actual results
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from collections import Counter
+
+          with open('reports/semgrep.json') as report:
+              data = json.load(report)
+
+          findings = data['results']
+          errors = data.get('errors', [])
+          counts = Counter(item['check_id'] for item in findings)
+
+          lines = [
+              '## Day 1 static-analysis baseline',
+              'Mode: report findings; no vulnerability blocking gate yet.',
+              f'Findings: {len(findings)}',
+              f'Scanner errors: {len(errors)}',
+          ]
+          lines.extend(
+              f'- {rule}: {count}'
+              for rule, count in sorted(counts.items())
+          )
+
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('\n\n'.join(lines) + '\n')
+
+          print('\n'.join(lines))
+
+          if errors:
+              raise SystemExit('Scanner errors: inspect the JSON report.')
+          PY
+
+      - name: Save the scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-baseline
+          path: reports/semgrep.json
+          if-no-files-found: error
+          retention-days: 30
