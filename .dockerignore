@@ -4,3 +4,9 @@
 **/Dockerfile*
 **/.dockerignore
 **/compose.yml
+**/.env
+**/.env.*
+config/config.inc.php
+config/config.inc.php.bak
+evidence/
+reports/
