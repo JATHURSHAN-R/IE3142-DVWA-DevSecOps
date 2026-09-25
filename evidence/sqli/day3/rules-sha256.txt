@@ -1,0 +1,1 @@
+de2c12e222bfe9695354b21d3c1e823c972d59ebef7975cc6ebbeb4ee48c760c  .semgrep/team.yml
