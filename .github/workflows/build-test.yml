@@ -49,6 +49,11 @@ jobs:
           docker compose -p dvwa-ci exec -T dvwa \
             php scripts/check-db.php
 
+      - name: Run SQL regression checks
+        run: |
+          docker compose -p dvwa-ci exec -T dvwa \
+            php tests/team/sqli-regression.php
+
       - name: Check login page
         run: |
           curl --fail --silent --show-error \

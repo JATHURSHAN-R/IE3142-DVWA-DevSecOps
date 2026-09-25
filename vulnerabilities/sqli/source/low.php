@@ -1,56 +1,72 @@
 <?php
 
-if( isset( $_REQUEST[ 'Submit' ] ) ) {
-	// Get input
-	$id = $_REQUEST[ 'id' ];
+if (isset($_REQUEST['Submit'])) {
+    $raw = $_REQUEST['id'] ?? null;
 
-	switch ($_DVWA['SQLI_DB']) {
-		case MYSQL:
-			// Check database
-			$query  = "SELECT first_name, last_name FROM users WHERE user_id = '$id';";
-			$result = mysqli_query($GLOBALS["___mysqli_ston"],  $query ) or die( '<pre>' . ((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)) . '</pre>' );
+    $id = is_string($raw)
+        ? filter_var($raw, FILTER_VALIDATE_INT, [
+            'options' => [
+                'min_range' => 1,
+                'max_range' => 2147483647
+            ]
+        ])
+        : false;
 
-			// Get results
-			while( $row = mysqli_fetch_assoc( $result ) ) {
-				// Get values
-				$first = $row["first_name"];
-				$last  = $row["last_name"];
+    if ($id === false) {
+        $html .= '<pre>Enter a valid positive integer ID.</pre>';
+    } elseif ($_DVWA['SQLI_DB'] !== MYSQL) {
+        $html .= '<pre>This team fix supports MySQL only.</pre>';
+    } else {
+        $stmt = null;
 
-				// Feedback for end user
-				$html .= "<pre>ID: {$id}<br />First name: {$first}<br />Surname: {$last}</pre>";
-			}
+        try {
+            $db = $GLOBALS['___mysqli_ston'];
 
-			mysqli_close($GLOBALS["___mysqli_ston"]);
-			break;
-		case SQLITE:
-			global $sqlite_db_connection;
+            $stmt = mysqli_prepare(
+                $db,
+                'SELECT first_name, last_name FROM users WHERE user_id = ?'
+            );
 
-			#$sqlite_db_connection = new SQLite3($_DVWA['SQLITE_DB']);
-			#$sqlite_db_connection->enableExceptions(true);
+            if (!$stmt
+                || !mysqli_stmt_bind_param($stmt, 'i', $id)
+                || !mysqli_stmt_execute($stmt)
+                || !mysqli_stmt_bind_result($stmt, $first, $last)) {
+                throw new RuntimeException('Query failed');
+            }
 
-			$query  = "SELECT first_name, last_name FROM users WHERE user_id = '$id';";
-			#print $query;
-			try {
-				$results = $sqlite_db_connection->query($query);
-			} catch (Exception $e) {
-				echo 'Caught exception: ' . $e->getMessage();
-				exit();
-			}
+            $found = false;
 
-			if ($results) {
-				while ($row = $results->fetchArray()) {
-					// Get values
-					$first = $row["first_name"];
-					$last  = $row["last_name"];
+            while (mysqli_stmt_fetch($stmt)) {
+                $found = true;
 
-					// Feedback for end user
-					$html .= "<pre>ID: {$id}<br />First name: {$first}<br />Surname: {$last}</pre>";
-				}
-			} else {
-				echo "Error in fetch ".$sqlite_db->lastErrorMsg();
-			}
-			break;
-	} 
+                $firstSafe = htmlspecialchars(
+                    (string) $first,
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                );
+
+                $lastSafe = htmlspecialchars(
+                    (string) $last,
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                );
+
+                $html .= "<pre>ID: {$id}<br />First name: "
+                    . $firstSafe
+                    . '<br />Surname: '
+                    . $lastSafe
+                    . '</pre>';
+            }
+
+            if (!$found) {
+                $html .= '<pre>No matching user.</pre>';
+            }
+        } catch (Throwable $error) {
+            $html .= '<pre>Unable to complete the lookup.</pre>';
+        } finally {
+            if ($stmt) {
+                mysqli_stmt_close($stmt);
+            }
+        }
+    }
 }
-
-?>
