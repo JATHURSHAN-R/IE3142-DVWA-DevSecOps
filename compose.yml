@@ -1,33 +1,41 @@
-volumes:
-  dvwa:
-
-networks:
-  dvwa:
-
 services:
   dvwa:
     build: .
     image: dvwa-team:local
     pull_policy: build
     environment:
-      - DB_SERVER=db
-      - DB_PASSWORD=${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      DB_SERVER: db
+      DB_DATABASE: dvwa
+      DB_USER: dvwa
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${DVWA_PORT:-4280}:80"
+    volumes: []
     networks:
       - dvwa
-    ports:
-      - 127.0.0.1:4280:80
-    restart: unless-stopped
 
   db:
-    image: docker.io/library/mariadb:10
+    image: mariadb:10
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
-      - MYSQL_DATABASE=dvwa
-      - MYSQL_USER=dvwa
-      - MYSQL_PASSWORD=${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      MYSQL_DATABASE: dvwa
+      MYSQL_USER: dvwa
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set root password}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
     volumes:
       - dvwa:/var/lib/mysql
     networks:
       - dvwa
+
+volumes:
+  dvwa:
+
+networks:
+  dvwa:

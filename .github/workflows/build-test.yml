@@ -1,0 +1,81 @@
+name: Build and Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Two-container build and smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Generate disposable CI credentials
+        run: |
+          dbpass="$(openssl rand -hex 24)"
+          rootpass="$(openssl rand -hex 24)"
+          echo "::add-mask::$dbpass"
+          echo "::add-mask::$rootpass"
+          echo "DB_PASSWORD=$dbpass" >> "$GITHUB_ENV"
+          echo "MYSQL_ROOT_PASSWORD=$rootpass" >> "$GITHUB_ENV"
+          echo "DVWA_PORT=4280" >> "$GITHUB_ENV"
+
+      - name: Build and start both components
+        run: |
+          docker compose -p dvwa-ci up -d \
+            --build --wait --wait-timeout 150
+
+      - name: Check PHP syntax
+        run: |
+          docker compose -p dvwa-ci exec -T dvwa sh -c '
+            php -l vulnerabilities/sqli/source/low.php &&
+            php -l vulnerabilities/weak_id/source/low.php &&
+            php -l vulnerabilities/upload/source/low.php &&
+            php -l dvwa/includes/dvwaPage.inc.php &&
+            php -l scripts/check-db.php'
+
+      - name: Check database communication
+        run: |
+          docker compose -p dvwa-ci exec -T dvwa \
+            php scripts/check-db.php
+
+      - name: Check login page
+        run: |
+          curl --fail --silent --show-error \
+            --retry 12 --retry-connrefused --retry-delay 2 \
+            http://127.0.0.1:4280/login.php \
+            -o /tmp/dvwa-login.html
+          grep -q 'name="username"' /tmp/dvwa-login.html
+
+      - name: Record environment evidence
+        if: always()
+        run: |
+          mkdir -p reports
+          git rev-parse HEAD > reports/tested-commit.txt
+          docker --version > reports/docker-version.txt
+          docker compose version > reports/compose-version.txt
+          docker compose -p dvwa-ci ps > reports/containers.txt
+          docker image inspect dvwa-team:local \
+            --format '{{.Id}}' > reports/image-id.txt
+
+      - name: Save environment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: day2-environment
+          path: reports/
+          if-no-files-found: error
+
+      - name: Clean up temporary CI resources
+        if: always()
+        run: docker compose -p dvwa-ci down -v

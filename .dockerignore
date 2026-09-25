@@ -10,3 +10,7 @@ config/config.inc.php
 config/config.inc.php.bak
 evidence/
 reports/
+
+# Private runtime credentials
+**/.env
+**/.env.*
