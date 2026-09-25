@@ -16,3 +16,11 @@ tests/__pycache__/
 hackable/uploads/*
 .DS_Store
 .DS_Store
+
+# Private runtime credentials and generated reports
+.env
+.env.*
+!.env.example
+reports/
+
+.env.day2
