@@ -36,6 +36,16 @@ COPY --chown=www-data:www-data config/config.inc.php.dist config/config.inc.php
 RUN composer install --working-dir=/var/www/html/vulnerabilities/api \
     --no-dev --no-interaction --prefer-dist --no-progress
 
+# Extensions and Composer dependencies have already been installed.
+# Remove development headers from the final runtime image.
+# Do not autoremove runtime libraries.
+RUN apt-get purge -y \
+      linux-libc-dev \
+      zlib1g-dev \
+      libpng-dev \
+      libjpeg-dev \
+      libfreetype6-dev \
+ && php -r 'foreach (["gd", "mysqli", "pdo_mysql"] as $ext) { if (!extension_loaded($ext)) { fwrite(STDERR, "Missing extension: ".$ext.PHP_EOL); exit(1); } }'
 
 
 
