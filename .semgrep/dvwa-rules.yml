@@ -1,0 +1,34 @@
+rules:
+  - id: team-sqli-query-review
+    languages: [php]
+    severity: WARNING
+    message: Review raw SQL execution for parameter binding.
+    paths:
+      include: [vulnerabilities/sqli/source/low.php]
+    pattern: mysqli_query(...)
+
+  - id: team-weak-session-counter
+    languages: [php]
+    severity: WARNING
+    message: A counter is not an unpredictable session token.
+    paths:
+      include: [vulnerabilities/weak_id/source/low.php]
+    pattern: $_SESSION['last_session_id']++
+
+  - id: team-upload-original-bytes-review
+    languages: [php]
+    severity: WARNING
+    message: Review validation and storage of uploaded bytes.
+    paths:
+      include: [vulnerabilities/upload/source/low.php]
+    pattern: move_uploaded_file(...)
+
+  - id: team-guestbook-unencoded-row
+    languages: [php]
+    severity: WARNING
+    message: Encode guestbook values for HTML output.
+    paths:
+      include: [dvwa/includes/dvwaPage.inc.php]
+    pattern-either:
+      - pattern: $name = $row[0];
+      - pattern: $comment = $row[1];
