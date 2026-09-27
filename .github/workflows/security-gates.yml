@@ -31,3 +31,26 @@ jobs:
           path: reports/trivy/
           if-no-files-found: error
           retention-days: 30
+
+  sast:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run Member 2 SAST scanner
+        run: bash ci/sast.sh
+
+      - name: Upload SAST report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-sast-report
+          path: reports/semgrep.json
+          if-no-files-found: error
+          retention-days: 30
