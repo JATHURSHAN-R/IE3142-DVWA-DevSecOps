@@ -1,0 +1,50 @@
+{
+  "recorded_at_utc": "2026-09-27T07:14:36.917392+00:00",
+  "member": "Mugesh Ravichandran",
+  "student_id": "IT24102004",
+  "before_commit": "bd207094c5054822dc700aa0292def57de03af4b",
+  "after_commit": "f6de7d2623ab803a77847ebc97ea6cb1917a063f",
+  "scanner_tag": "semgrep/semgrep:1.90.0",
+  "scanner_version": "1.90.0",
+  "scanner_image_id": "sha256:7b625711ba9b6d1a543e308967b18c01b59932490a5536a06422666474bf6ee4",
+  "scanner_repo_digests": [
+    "semgrep/semgrep@sha256:7b625711ba9b6d1a543e308967b18c01b59932490a5536a06422666474bf6ee4"
+  ],
+  "rules_sha256": "24960f757b4a9528c58f896d2641417c74fa761a66cd172d88361a5b0a607efb",
+  "ignore_sha256": "ea982d67e9c3c4456c951599749f693bc0695ec22021fc3368785957a26ad3e6",
+  "source_sha256": {
+    "before": {
+      "vulnerabilities/sqli/source/low.php": "652bb44d14a9d81c9245f05ed8440beecf7977e982e00d3ddb916126a72e85bf",
+      "vulnerabilities/weak_id/source/low.php": "c88680e13f976f129b956cee00a7c426b6a29da9e678677b7d2881109f02b2d0",
+      "vulnerabilities/upload/source/low.php": "a958136c538b253829ffbb8d8e6e7daee5061b31a531c4b9bcc99e8d2099503f",
+      "dvwa/includes/dvwaPage.inc.php": "bea6c28500f15705ad5cfedf8c501706bf36a293f22419e7a63651907495f3b8"
+    },
+    "after": {
+      "vulnerabilities/sqli/source/low.php": "44bf0977a208913310d77e6c3cddc000e8d6459fb4eb77df038f8e9f13ae5bbb",
+      "vulnerabilities/weak_id/source/low.php": "c88680e13f976f129b956cee00a7c426b6a29da9e678677b7d2881109f02b2d0",
+      "vulnerabilities/upload/source/low.php": "a958136c538b253829ffbb8d8e6e7daee5061b31a531c4b9bcc99e8d2099503f",
+      "dvwa/includes/dvwaPage.inc.php": "dcb014e0e824beb8df558547fe7b799c41c2cb9c544214f3d5227d099d13bdca"
+    }
+  },
+  "targets": [
+    "vulnerabilities/sqli/source/low.php",
+    "vulnerabilities/weak_id/source/low.php",
+    "vulnerabilities/upload/source/low.php",
+    "dvwa/includes/dvwaPage.inc.php"
+  ],
+  "required_files_scanned_per_report": 4,
+  "scanner_errors": 0,
+  "before_counts": {
+    "semgrep.team-guestbook-unencoded-row": 2,
+    "semgrep.team-sqli-query-review": 1,
+    "semgrep.team-upload-original-bytes-review": 1,
+    "semgrep.team-weak-session-counter": 1
+  },
+  "after_counts": {
+    "semgrep.team-upload-original-bytes-review": 1,
+    "semgrep.team-weak-session-counter": 1
+  },
+  "xss_before": 2,
+  "xss_after": 0,
+  "scoped_xss_check": "PASS"
+}
