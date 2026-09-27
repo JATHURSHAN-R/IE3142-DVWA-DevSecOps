@@ -54,3 +54,27 @@ jobs:
           path: reports/semgrep.json
           if-no-files-found: error
           retention-days: 30
+
+
+  composer:
+    name: Composer dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run Member 3 dependency audit
+        run: bash ci/dependencies.sh
+
+      - name: Upload dependency audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: composer-audit-report
+          path: reports/composer-audit.json
+          if-no-files-found: error
+          retention-days: 30
