@@ -78,3 +78,27 @@ jobs:
           path: reports/composer-audit.json
           if-no-files-found: error
           retention-days: 30
+
+  gitleaks:
+    name: Gitleaks secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Run Member 4 secret scanner
+        run: bash ci/secrets.sh
+
+      - name: Upload redacted secret scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: reports/gitleaks.json
+          if-no-files-found: error
+          retention-days: 30
